@@ -1,25 +1,23 @@
 import spacy
-from spacy import displacy
-from spacy.lang.en import stop_words
-nlp = spacy.load("en_core_web_sm")
-stop_words = stop_words.STOP_WORDS
-doc = nlp("DHL lost my package in Berlin.")
+from spacy.lang.en.stop_words import STOP_WORDS
 
 
-def extract_keywords(doc) -> list[str]:
+
+
+def extract_keywords(doc: spacy.tokens.Doc) -> list[str]:
     keywords = []
     for token in doc:
-        if token.pos_ in {"NOUN","ADJ","ADV"} and token.lemma_ not in stop_words:
+        if token.pos_ in {"NOUN","ADJ","ADV"} and token.lemma_ not in STOP_WORDS:
             keywords.append(token.lemma_)
     return keywords
 
-def extract_entities(doc) -> list[dict]:
+def extract_entities(doc: spacy.tokens.Doc) -> list[dict]:
     entities = []
     for ent in doc.ents:
         entities.append({"text": ent.text, "label": ent.label_})
     return entities
 
-def extract_linguistic_metrics(doc) -> dict[str, float | bool]:
+def extract_linguistic_metrics(doc: spacy.tokens.Doc) -> dict[str, float | bool]:
     # caculate lexical density as the ratio of content words to total words, punctuations are not counted as words
     lexical_density = len([token for token in doc if token.pos_ in {"NOUN","ADJ","ADV", "VERB"}])/len([token for token in doc if token.is_alpha])
     
