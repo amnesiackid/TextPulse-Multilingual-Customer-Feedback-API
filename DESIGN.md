@@ -8,10 +8,10 @@
 **`AnalysisRequest`**
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `comment` | `str` | ✓ | The raw customer feedback text to analyze |
+| `text` | `str` | ✓ | The raw customer feedback text to analyze |
 | `product_id` | `UUID` | ✓ | ID of the product being reviewed |
 | `commenter_id` | `UUID` | ✓ | ID of the customer who submitted the feedback |
-| `lan` | `Literal["english", "german", "italian"]` | ✗ | Optional language hint; API auto-detects if omitted |
+| `language_hint` | `Literal["english", "german", "italian"]` | ✗ | Optional language hint; API auto-detects if omitted |
 
 ---
 
