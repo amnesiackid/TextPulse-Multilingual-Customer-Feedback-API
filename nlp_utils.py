@@ -26,20 +26,24 @@ def extract_linguistic_metrics(doc: spacy.tokens.Doc) -> models.LinguisticMetric
     return models.LinguisticMetrics(lexical_density=lexical_density, negation_detected=negation_detected)
 
 def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
+    # TO DO: solve multi-word aspect and multiple sentment words for one aspect
     aspects = [token for token in doc if token.lemma_ in ASPECT_VOCAB]
     aspect_results = []
     for aspect in aspects:
+        # amod scenario where aspect is the object of a verb, e.g. "I love the delivery"
         sentiment_word = next((child for child in aspect.children if child.dep_ == "amod"), None)
         # passive scenario where aspect is the subject of a passive verb, e.g. "the delivery was broken"
         if not sentiment_word and aspect.dep_ == "nsubjpass":
-            sentiment_word = next((child for child in aspect.children if child.dep_ == "ROOT"), None)
-        # adverbial modifier scenario, e.g. "the delivery was very good"
-        if not sentiment_word:
-            sentiment_word = next((child for child in aspect.children if child.dep_ == "advmod"), None)    
-        # amod scenario where aspect is the object of a verb, e.g. "I love the delivery"
+            sentiment_word = aspect.head
+        # adjectival complement scenario, e.g. "the delivery was very good"
+        if not sentiment_word and aspect.dep_ == "nsubj":
+            sentiment_word = next((child for child in aspect.head.children if child.dep_ == "acomp"), None)
         if sentiment_word:
-            polarity = sia.polarity_scores(sentiment_word.text)["compound"]
-            head = aspect.head
+            sentiment_excerpt = " ".join(w.text for w in sentiment_word.subtree)
+            polarity = sia.polarity_scores(sentiment_excerpt)["compound"]
             excerpt = " ".join(w.text for w in aspect.subtree)
             aspect_results.append(models.AspectResult(aspect=aspect.lemma_, polarity=polarity, excerpt=excerpt))
+        else:
+            print("Sentiment word not found")
+            
     return aspect_results
