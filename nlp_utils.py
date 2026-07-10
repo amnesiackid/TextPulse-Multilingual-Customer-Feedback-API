@@ -30,7 +30,7 @@ def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
     aspects = [token for token in doc if token.lemma_ in ASPECT_VOCAB]
     aspect_results = []
     for aspect in aspects:
-        # amod scenario where aspect is the object of a verb, e.g. "I love the delivery"
+        # amod scenario where aspect is the object of a verb, e.g. "the quick delivery"
         sentiment_word = next((child for child in aspect.children if child.dep_ == "amod"), None)
         # passive scenario where aspect is the subject of a passive verb, e.g. "the delivery was broken"
         if not sentiment_word and aspect.dep_ == "nsubjpass":
@@ -38,12 +38,24 @@ def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
         # adjectival complement scenario, e.g. "the delivery was very good"
         if not sentiment_word and aspect.dep_ == "nsubj":
             sentiment_word = next((child for child in aspect.head.children if child.dep_ == "acomp"), None)
+        # direct object scenario, e.g. "I love the delivery"
+        if not sentiment_word and aspect.dep_ == "dobj":
+            sentiment_word = aspect.head
         if sentiment_word:
-            sentiment_excerpt = " ".join(w.text for w in sentiment_word.subtree)
+            excerpt_tokens = get_excerpt_tokens(sentiment_word)
+            sentiment_excerpt = " ".join(w.text for w in sorted(excerpt_tokens, key=lambda token: token.i))
             polarity = sia.polarity_scores(sentiment_excerpt)["compound"]
-            excerpt = " ".join(w.text for w in aspect.subtree)
+            excerpt = " ".join(w.text for w in sorted(get_excerpt_tokens(aspect), key=lambda token: token.i))
             aspect_results.append(models.AspectResult(aspect=aspect.lemma_, polarity=polarity, excerpt=excerpt))
         else:
             print("Sentiment word not found")
             
     return aspect_results
+
+def get_excerpt_tokens(sentiment_word: spacy.tokens.Token) -> list[spacy.tokens.Token]:
+    result = [sentiment_word]  # handle this one item
+    for child in sentiment_word.children:
+        if child.dep_ in {"conj","cc"}:
+            continue
+        result += get_excerpt_tokens(child)  # solve the same problem, but smaller
+    return result
