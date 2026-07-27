@@ -4,7 +4,7 @@ from dependencies import get_settings, get_nlp, get_db
 from fastapi import FastAPI, HTTPException, Depends, Request
 from contextlib import asynccontextmanager
 from datetime import datetime 
-from nlp_utils import extract_keywords, extract_entities, extract_linguistic_metrics
+from nlp_utils import extract_keywords, extract_aspects, extract_entities, extract_linguistic_metrics
 from sqlalchemy.orm import Session
 from db_models import AnalysisRecord
 from uuid import uuid4
@@ -46,7 +46,7 @@ async def analyze(request: models.AnalysisRequest, settings: dict = Depends(get_
     # hardcoded now
     detected_language = "en"
     keywords = extract_keywords(doc)
-    aspects = [models.AspectResult(aspect="delivery", polarity=0.5, excerpt="The DHL delivery was quick and efficient.")]
+    aspects = extract_aspects(doc)
     entities = extract_entities(doc)
     metrics = extract_linguistic_metrics(doc)
     processed_at = datetime.now()
@@ -71,7 +71,7 @@ async def analyze(request: models.AnalysisRequest, settings: dict = Depends(get_
         commenter_id=request.commenter_id,
         detected_language=detected_language,
         processed_at=processed_at,
-        aspects=[models.AspectResult(aspect="delivery", polarity=0.5, excerpt="The DHL delivery was quick and efficient.")],
+        aspects=aspects,
         keywords=keywords,
         entities=entities,
         metrics=metrics

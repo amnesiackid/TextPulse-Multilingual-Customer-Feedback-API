@@ -30,7 +30,7 @@ def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
     aspects = [token for token in doc if token.lemma_ in ASPECT_VOCAB]
     aspect_results = []
     for aspect in aspects:
-        # amod scenario where aspect is the object of a verb, e.g. "the quick delivery"
+        # when aspect is ROOT, amod scenario, e.g. "the quick delivery"
         sentiment_word = next((child for child in aspect.children if child.dep_ == "amod"), None)
         # passive scenario where aspect is the subject of a passive verb, e.g. "the delivery was broken"
         if not sentiment_word and aspect.dep_ == "nsubjpass":
@@ -41,6 +41,7 @@ def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
         # direct object scenario, e.g. "I love the delivery"
         if not sentiment_word and aspect.dep_ == "dobj":
             sentiment_word = aspect.head
+        sentiment_word.text if sentiment_word else None
         if sentiment_word:
             excerpt_tokens = get_excerpt_tokens(sentiment_word)
             sentiment_excerpt = " ".join(w.text for w in sorted(excerpt_tokens, key=lambda token: token.i))
@@ -53,9 +54,22 @@ def extract_aspects(doc: spacy.tokens.Doc) -> list[models.AspectResult]:
     return aspect_results
 
 def get_excerpt_tokens(sentiment_word: spacy.tokens.Token) -> list[spacy.tokens.Token]:
-    result = [sentiment_word]  # handle this one item
+    result = [sentiment_word]
+
     for child in sentiment_word.children:
-        if child.dep_ in {"conj","cc"}:
-            continue
-        result += get_excerpt_tokens(child)  # solve the same problem, but smaller
+        if child.dep_ not in {"conj", "cc"}:
+            result += get_excerpt_tokens(child)
+    # check for negation words that are siblings of the sentiment word, such as "I don't like it" or "not good delivery"
+    negation = next( 
+        (
+            child
+            for child in sentiment_word.head.children
+            if child.dep_ == "neg"
+        ),
+        None,
+    )
+
+    if negation is not None and negation not in result:
+        result.append(negation)
+    
     return result
