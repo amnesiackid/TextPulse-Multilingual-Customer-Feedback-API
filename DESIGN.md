@@ -53,3 +53,49 @@
 | `metrics` | `LinguisticMetrics` | Lexical density and negation detection |
 
 ---
+## Persistence Model
+
+**`AnalysisRecord`**
+
+| Field               | Type       | Description                                   |
+| ------------------- | ---------- | --------------------------------------------- |
+| `id`                | `UUID`     | Unique identifier for the stored analysis     |
+| `product_id`        | `UUID`     | ID of the product being reviewed              |
+| `commenter_id`      | `UUID`     | ID of the customer who submitted the feedback |
+| `text`              | `str`      | Original customer feedback text               |
+| `detected_language` | `str`      | Language detected during analysis             |
+| `processed_at`      | `datetime` | Timestamp of when the analysis was performed  |
+| `aspects`           | `JSONB`    | Serialized aspect results                     |
+| `keywords`          | `JSONB`    | Serialized keyword list                       |
+| `entities`          | `JSONB`    | Serialized named-entity results               |
+| `lexical_density`   | `float`    | Ratio of content words to alphabetic words    |
+| `negation_detected` | `bool`     | Whether negation was detected in the feedback |
+
+`AnalysisRecord` is the SQLAlchemy model used to store the result of each successful `/analyze` request in the `analyses` table.
+
+---
+
+## History
+
+### Response Model
+
+**`HistoryRecord`**
+| Field | Type | Description |
+|---|---|---|
+| `id` | `UUID` | Unique identifier for the stored analysis |
+| `product_id` | `UUID` | ID of the product being reviewed |
+| `commenter_id` | `UUID` | ID of the customer who submitted the feedback |
+| `text` | `str` | Original customer feedback text |
+| `detected_language` | `str` | Language detected during analysis |
+| `processed_at` | `datetime` | Timestamp of when the analysis was performed |
+| `aspects` | `list[AspectResult]` | All stored aspects with polarity and excerpt |
+| `keywords` | `list[str]` | Significant words extracted from the feedback |
+| `entities` | `list[EntityResult]` | Named entities found in the feedback |
+| `metrics` | `LinguisticMetrics` | Lexical density and negation detection |
+
+## `GET /history`
+
+Returns previously stored analysis records.
+
+
+

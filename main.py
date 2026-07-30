@@ -1,13 +1,14 @@
 import spacy
 import models, db_models
 from dependencies import get_settings, get_nlp, get_db
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, Query
 from contextlib import asynccontextmanager
 from datetime import datetime 
 from nlp_utils import extract_keywords, extract_aspects, extract_entities, extract_linguistic_metrics
 from sqlalchemy.orm import Session
 from db_models import AnalysisRecord
 from uuid import uuid4
+from uuid import UUID
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -76,4 +77,38 @@ async def analyze(request: models.AnalysisRequest, settings: dict = Depends(get_
         entities=entities,
         metrics=metrics
     )
-    
+
+
+@app.get("/history", response_model=list[models.HistoryRecord])
+async def history(db: Session = Depends(get_db), product_id: UUID | None = None, limit: int | None = Query(default=None, ge=1, le=100), product_name: str | None = None) -> list[models.HistoryRecord]:
+    query = db.query(AnalysisRecord)
+    if product_id is not None:
+        query = query.filter(AnalysisRecord.product_id == product_id)
+    if product_name is not None:
+        query = query.filter(AnalysisRecord.product_name == product_name)
+    query = query.order_by(AnalysisRecord.processed_at.desc())
+    if limit is not None:
+            query = query.limit(limit)
+    records = query.all()        
+    history_records = [
+    models.HistoryRecord(
+            id=record.id,
+            product_id=record.product_id,
+            product_name=record.product_name,
+            commenter_id=record.commenter_id,
+            text=record.text,
+            detected_language=record.detected_language,
+            processed_at=record.processed_at,
+            aspects=record.aspects,
+            keywords=record.keywords,
+            entities=record.entities,
+            metrics=models.LinguisticMetrics(
+                lexical_density=record.lexical_density,
+                negation_detected=record.negation_detected,
+            ),
+        )
+        for record in records
+    ]
+
+    return history_records
+    return [history_record]

@@ -24,6 +24,7 @@ class LinguisticMetrics(BaseModel):
 
 class AnalysisResponse(BaseModel):
     product_id: UUID
+    product_name: str
     commenter_id: UUID
     detected_language:Literal["en", "fr", "it", "de"]
     processed_at: datetime
@@ -32,4 +33,15 @@ class AnalysisResponse(BaseModel):
     entities: list[EntityResult]
     metrics: LinguisticMetrics
     
-    
+class HistoryRecord(BaseModel):
+    id: UUID
+    product_id: UUID
+    product_name: str
+    commenter_id: UUID
+    text: str
+    detected_language: Literal["en", "fr", "it", "de"]
+    processed_at: datetime
+    aspects: list[AspectResult]
+    keywords: list[str]
+    entities: list[EntityResult]
+    metrics: LinguisticMetrics    

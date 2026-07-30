@@ -1,10 +1,19 @@
-import spacy
-from spacy import displacy
-nlp = spacy.load("en_core_web_sm")
-doc_dobj = nlp("I love the delivery and hate the packaging.")
-doc_amod = nlp("The quick delivery")
-doc_acomp = nlp("the delivery was very good and the packaging was very bad")
-doc_neg = nlp("The delivery was not good")
-doc_dobj2 = nlp("I do not love the delivery")
-doc_nsubpass = nlp("The delivery was broken and the packaging was crushed.")
-displacy.serve([doc_dobj, doc_amod, doc_acomp, doc_neg, doc_dobj2, doc_nsubpass], style="dep")
+from database import SessionLocal
+from db_models import AnalysisRecord
+from uuid import UUID
+
+session = SessionLocal()
+
+record = session.get(
+    AnalysisRecord,
+    UUID("00000000-0000-0000-0000-000000000001"),
+)
+
+if record is not None:
+    session.delete(record)
+    session.commit()
+    print("Deleted test record")
+else:
+    print("Test record not found")
+
+session.close()

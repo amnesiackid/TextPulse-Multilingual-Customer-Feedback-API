@@ -10,6 +10,7 @@ class AnalysisRecord(Base):
     __tablename__ = "analyses"
 
     id: Mapped[UUID] = mapped_column(SQLUUID, primary_key=True)
+    product_name: Mapped[str] = mapped_column(Text, nullable=False)
     product_id: Mapped[UUID] = mapped_column(SQLUUID, nullable=False)
     commenter_id: Mapped[UUID] = mapped_column(SQLUUID, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
