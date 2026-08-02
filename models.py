@@ -7,6 +7,7 @@ class AnalysisRequest(BaseModel):
     text: str
     language_hint: Optional[Literal["en", "fr", "it", "de"]] = None
     product_id: UUID
+    product_name: str
     commenter_id: UUID
 
 class AspectResult(BaseModel):

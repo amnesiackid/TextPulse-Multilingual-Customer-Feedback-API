@@ -22,3 +22,8 @@ en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/dow
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
+]

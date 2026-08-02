@@ -2,7 +2,7 @@ from fastapi import Request
 from database import SessionLocal
 
 def get_settings():
-    return {"min_word_count": 2, "max_word_count": 5000,
+    return {"min_word_count": 2, "max_word_count": 2000,
              "app_version": "1.0.0"}
 
 def get_nlp(request:Request):

@@ -54,6 +54,7 @@ async def analyze(request: models.AnalysisRequest, settings: dict = Depends(get_
     record = db_models.AnalysisRecord(
             id=uuid4(),
             product_id=request.product_id,
+            product_name=request.product_name,
             commenter_id=request.commenter_id,
             text=text,
             detected_language=detected_language,
@@ -69,6 +70,7 @@ async def analyze(request: models.AnalysisRequest, settings: dict = Depends(get_
     db.refresh(record)
     return models.AnalysisResponse(
         product_id=request.product_id,
+        product_name=request.product_name,
         commenter_id=request.commenter_id,
         detected_language=detected_language,
         processed_at=processed_at,
@@ -111,4 +113,3 @@ async def history(db: Session = Depends(get_db), product_id: UUID | None = None,
     ]
 
     return history_records
-    return [history_record]
